@@ -1,0 +1,33 @@
+name: Build APK
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/bin_atlas
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unzip project
+        working-directory: .
+        run: unzip -q bin_atlas.zip -d src
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: |
+          pip install requests
+          python -m unittest test_engine -v
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - run: |
+          pip install flet==0.28.3
+          flet build apk --project "BIN Atlas" --org com.binatlas --verbose
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bin-atlas-apk
+          path: src/bin_atlas/build/apk/*.apk
